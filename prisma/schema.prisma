@@ -27,13 +27,15 @@ enum Age {
 }
 
 model Org {
-  id              String @id @default(uuid())
-  coordinatorName String @map("coordinator_name")
-  email           String @unique
-  passwordHash    String @map("password_hash")
+  id              String  @id @default(uuid())
+  coordinatorName String  @map("coordinator_name")
+  email           String  @unique
+  password        String  @map("password_hash")
+  whatsapp        String  @map("whatsapp_number")
   cep             String
   address         String
-  whatsappNumber  String @map("whatsapp_number")
+  latitude        Decimal
+  longitude       Decimal
 
   pets Pet[]
 
@@ -54,17 +56,5 @@ model Pet {
   org   Org    @relation(fields: [orgId], references: [id])
   orgId String @map("org_id")
 
-  petPhotos PetPhoto[]
-
   @@map("pets")
-}
-
-model PetPhoto {
-  id    String @id @default(uuid())
-  photo String
-
-  pet   Pet    @relation(fields: [petId], references: [id])
-  petId String @map("pet_id")
-
-  @@map("pet_photos")
 }
