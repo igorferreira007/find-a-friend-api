@@ -33,7 +33,10 @@ model Org {
   password        String  @map("password_hash")
   whatsapp        String  @map("whatsapp_number")
   cep             String
-  address         String
+  state           String
+  city            String
+  neighborhood    String
+  street          String
   latitude        Decimal
   longitude       Decimal
 
@@ -43,15 +46,14 @@ model Org {
 }
 
 model Pet {
-  id                   String  @id @default(uuid())
-  name                 String
-  description          String?
-  age                  Age
-  size                 Size
-  energyLevel          Level   @map("energy_level")
-  independenceLevel    Level   @map("independence_level")
-  environment          Size
-  adoptionRequirements Json    @map("adoption_requirements")
+  id                String  @id @default(uuid())
+  name              String
+  description       String?
+  age               Age
+  size              Size
+  energyLevel       Level   @map("energy_level")
+  independenceLevel Level   @map("independence_level")
+  environment       Size
 
   org   Org    @relation(fields: [orgId], references: [id])
   orgId String @map("org_id")
