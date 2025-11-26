@@ -15,7 +15,7 @@ export class InMemoryOrgsRepository implements OrgsRepository {
 
   async create(data: Prisma.OrgUncheckedCreateInput): Promise<Org> {
     const org = {
-      id: randomUUID(),
+      id: data.id ?? randomUUID(),
       name: data.name,
       coordinatorName: data.coordinatorName,
       email: data.email,
