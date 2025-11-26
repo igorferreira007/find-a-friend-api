@@ -1,18 +1,17 @@
-import { PetsRepository } from "@/repositories/pets-repositories.ts"
 import { beforeEach, describe, expect, it } from "vitest"
 import { CreatePetUseCase } from "./create-pet.ts"
 import { InMemoryPetsRepository } from "@/repositories/in-memory/in-memory-pets-repository.ts"
-import { OrgsRepository } from "@/repositories/orgs-repositories.ts"
 import { InMemoryOrgsRepository } from "@/repositories/in-memory/in-memory-orgs-repository.ts"
+import { ResourceNotFoundError } from "./erros/resource-not-found-error.ts"
 
-let petsRepository: PetsRepository
-let orgsRepository: OrgsRepository
+let petsRepository: InMemoryPetsRepository
+let orgsRepository: InMemoryOrgsRepository
 let sut: CreatePetUseCase
 
 describe("Create pet use case", () => {
   beforeEach(() => {
-    petsRepository = new InMemoryPetsRepository()
     orgsRepository = new InMemoryOrgsRepository()
+    petsRepository = new InMemoryPetsRepository(orgsRepository)
     sut = new CreatePetUseCase(petsRepository, orgsRepository)
   })
 
@@ -44,5 +43,20 @@ describe("Create pet use case", () => {
     })
 
     expect(pet.id).toEqual(expect.any(String))
+  })
+
+  it("should not be able to create pet if the org does not exist", async () => {
+    await expect(() =>
+      sut.execute({
+        name: "Bob",
+        description: null,
+        age: "ADULT",
+        energyLevel: "MEDIUM",
+        environment: "MEDIUM",
+        independenceLevel: "MEDIUM",
+        orgId: "org-01",
+        size: "MEDIUM",
+      })
+    ).rejects.toBeInstanceOf(ResourceNotFoundError)
   })
 })
