@@ -1,4 +1,3 @@
-import { OrgsRepository } from "@/repositories/orgs-repositories.ts"
 import { PetsRepository } from "@/repositories/pets-repositories.ts"
 import { Age, Level, Pet, Size } from "@prisma/client"
 

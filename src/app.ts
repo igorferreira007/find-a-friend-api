@@ -1,10 +1,23 @@
 import fastify from "fastify"
-import { PrismaClient } from "@prisma/client"
+import fastifyJwt from "@fastify/jwt"
+import { env } from "./env/index.ts"
+import { orgsRoutes } from "./routes/orgs-routes.ts"
+import fastifyCookie from "@fastify/cookie"
+import { petsRoutes } from "./routes/pets-routes.ts"
 
 export const app = fastify()
 
-const prisma = new PrismaClient()
-
-app.get("/", (_, reply) => {
-  reply.status(200).send({ message: "Hello World!" })
+app.register(fastifyJwt, {
+  secret: env.JWT_SECRET,
+  cookie: {
+    cookieName: "refreshToken",
+    signed: false,
+  },
+  sign: {
+    expiresIn: "10m",
+  },
 })
+
+app.register(fastifyCookie)
+app.register(orgsRoutes)
+app.register(petsRoutes)

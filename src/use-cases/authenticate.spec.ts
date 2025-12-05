@@ -1,24 +1,24 @@
-import { beforeEach, describe, expect, it } from "vitest"
 import { InMemoryOrgsRepository } from "@/repositories/in-memory/in-memory-orgs-repository.ts"
-import { CreateOrgUseCase } from "./create-org.ts"
-import { OrgAlreadyExistsError } from "./erros/org-already-exists-error.ts"
-import { compare } from "bcryptjs"
+import { beforeAll, beforeEach, describe, expect, it } from "vitest"
+import { AuthenticateUseCase } from "./authenticate.ts"
+import { hash } from "bcryptjs"
+import { InvalidCredentials } from "./erros/invalid-credentials.ts"
 
 let orgsRepository: InMemoryOrgsRepository
-let sut: CreateOrgUseCase
+let sut: AuthenticateUseCase
 
-describe("Create org use case", () => {
+describe("Authenticate use case", () => {
   beforeEach(() => {
     orgsRepository = new InMemoryOrgsRepository()
-    sut = new CreateOrgUseCase(orgsRepository)
+    sut = new AuthenticateUseCase(orgsRepository)
   })
 
-  it("should be able to create org", async () => {
-    const { org } = await sut.execute({
+  it("should be able search org", async () => {
+    await orgsRepository.create({
       name: "Find a friend",
       coordinatorName: "John Doe",
       email: "org-01@email.com",
-      password: "123456",
+      password: await hash("123456", 6),
       whatsapp: "00000000000",
       cep: "12220-610",
       state: "SP",
@@ -29,15 +29,20 @@ describe("Create org use case", () => {
       longitude: -45.808786372274426,
     })
 
+    const { org } = await sut.execute({
+      email: "org-01@email.com",
+      password: "123456",
+    })
+
     expect(org.id).toEqual(expect.any(String))
   })
 
-  it("should not be able to create org with same email twice", async () => {
-    await sut.execute({
+  it("should not be able search org with wrong email", async () => {
+    await orgsRepository.create({
       name: "Find a friend",
       coordinatorName: "John Doe",
       email: "org-01@email.com",
-      password: "123456",
+      password: await hash("123456", 6),
       whatsapp: "00000000000",
       cep: "12220-610",
       state: "SP",
@@ -50,28 +55,18 @@ describe("Create org use case", () => {
 
     await expect(() =>
       sut.execute({
-        name: "Find a friend",
-        coordinatorName: "John Doe",
-        email: "org-01@email.com",
+        email: "wrong@email.com",
         password: "123456",
-        whatsapp: "00000000000",
-        cep: "12220-610",
-        state: "SP",
-        city: "São José dos Campos",
-        neighborhood: "Vila Tatetuba",
-        street: "Rua 01",
-        latitude: -23.21853715183315,
-        longitude: -45.808786372274426,
       })
-    ).rejects.toBeInstanceOf(OrgAlreadyExistsError)
+    ).rejects.toBeInstanceOf(InvalidCredentials)
   })
 
-  it("should hash org password upon registration", async () => {
-    const { org } = await sut.execute({
+  it("should not be able search org with wrong password", async () => {
+    await orgsRepository.create({
       name: "Find a friend",
       coordinatorName: "John Doe",
       email: "org-01@email.com",
-      password: "123456",
+      password: await hash("123456", 6),
       whatsapp: "00000000000",
       cep: "12220-610",
       state: "SP",
@@ -82,8 +77,11 @@ describe("Create org use case", () => {
       longitude: -45.808786372274426,
     })
 
-    const isPasswordCorrectlyHashed = await compare("123456", org.password)
-
-    expect(isPasswordCorrectlyHashed).toBe(true)
+    await expect(() =>
+      sut.execute({
+        email: "org-01@email.com",
+        password: "123123",
+      })
+    ).rejects.toBeInstanceOf(InvalidCredentials)
   })
 })
